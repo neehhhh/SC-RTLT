@@ -1,0 +1,87 @@
+{
+  "schema_version": 2,
+  "source": "Wi-Fi confirmations, exact/correlated Game.log evidence, and Astro Atlas reference as of 2026-07-23",
+  "game_build": "12269732",
+  "mappings": [
+    {
+      "raw_token": "467417103",
+      "name": "Hurston",
+      "body": "Hurston",
+      "clock_mode": "utc",
+      "location_type": "Planet",
+      "source": "wifi_user_correction_2026-07-23"
+    },
+    {
+      "raw_token": "1902223495",
+      "name": "Non monitored zone",
+      "body": "",
+      "clock_mode": "utc",
+      "location_type": "Internal state",
+      "source": "game_log_internal_marker"
+    },
+    {
+      "raw_token": "3418064240",
+      "name": "MIC-L4",
+      "body": "MIC-L4",
+      "clock_mode": "utc",
+      "location_type": "Lagrange point vicinity",
+      "source": "wifi_user_confirmed"
+    },
+    {
+      "raw_token": "3196629118",
+      "name": "Red Crossroads Station",
+      "body": "MIC-L4",
+      "clock_mode": "utc",
+      "location_type": "Space station",
+      "source": "wifi_plus_request_location_inventory"
+    },
+    {
+      "raw_token": "4167598756",
+      "name": "Atmosphère de Calliope",
+      "body": "Calliope",
+      "clock_mode": "utc",
+      "location_type": "Atmospheric region",
+      "source": "wifi_user_confirmed"
+    },
+    {
+      "raw_token": "689215338",
+      "name": "Atmosphère de Clio",
+      "body": "Clio",
+      "clock_mode": "utc",
+      "location_type": "Atmospheric region",
+      "source": "wifi_user_confirmed"
+    },
+    {
+      "raw_token": "2719332593",
+      "name": "Euterpe",
+      "body": "Euterpe",
+      "clock_mode": "utc",
+      "location_type": "Moon",
+      "source": "game_log_projected_start_correlation"
+    },
+    {
+      "raw_token": "880969130",
+      "name": "No data available",
+      "body": "Calliope",
+      "clock_mode": "utc",
+      "location_type": "Unknown site",
+      "source": "unresolved_inventory_transition"
+    },
+    {
+      "raw_token": "2329075867",
+      "name": "HUR-L3",
+      "body": "HUR-L3",
+      "clock_mode": "utc",
+      "location_type": "Lagrange point vicinity",
+      "source": "wifi_user_confirmed"
+    },
+    {
+      "raw_token": "3170699229",
+      "name": "New Babbage",
+      "body": "microTech",
+      "clock_mode": "local",
+      "location_type": "City",
+      "source": "request_location_inventory_plus_atc_correlation_2026-07-23"
+    }
+  ]
+}

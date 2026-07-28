@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sc-rtlt"
+version = "1.3.2"
+description = "Public Real Time Checker for Star Citizen"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "GPL-3.0-only"
+authors = [
+  { name = "nehhh" },
+]
+dependencies = [
+  "PySide6>=6.8,<7",
+]
+
+[project.gui-scripts]
+sc-rtlt = "sc_web_companion.__main__:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sc_web_companion = [
+  "assets/*.ico",
+  "assets/*.json",
+  "assets/*.png",
+  "assets/*.svg",
+  "assets/versetime/*.csv",
+  "assets/versetime/*.txt",
+]
