@@ -1,5 +1,9 @@
 # SC-RTLT
 
+<img width="1891" height="143" alt="image (1)" src="https://github.com/user-attachments/assets/615f5f84-a169-4a3a-9deb-ea3f7662a440" />
+
+
+
 SC-RTLT is an unofficial, community-made Star Citizen companion for Windows.
 It combines an always-on-top overlay, location and Verse-time information,
 community radio, and a curated web browser in one application.
