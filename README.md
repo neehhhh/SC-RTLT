@@ -89,6 +89,11 @@ VerseTime data retains its attribution notice in
 The official Star Citizen website is
 [Roberts Space Industries](https://robertsspaceindustries.com/).
 
+Radios featured
+[HCN Radio](https://www.hcnradio.com/).
+[The People Radio](https://thepeoplesradio.space).
+[REC REG Radio](https://recreg.com).
+
 ## License
 
 The source code in this repository is licensed under the
