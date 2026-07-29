@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from importlib.resources import files
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -23,8 +24,23 @@ import sc_web_companion
 from sc_web_companion.display_policy import secondary_display
 from sc_web_companion.game_log_location import GameLogLocationParser
 from sc_web_companion.game_ui_state import GameUiLogParser, should_hide_widget_for_game_ui
+from sc_web_companion.hud_layout import (
+    default_hud_crops,
+    default_hud_scales,
+    default_hud_screen_layout,
+    default_hud_text_alignments,
+    default_hud_visible_widths,
+)
 from sc_web_companion.language import current_language, tr, translate_location_name, translate_weather
 from sc_web_companion.public_parser_recorder import PublicParserRecorder
+from sc_web_companion.radio_engine import RECREG_STREAM_URLS
+from sc_web_companion.radio_page import RADIO_STATIONS, STATION_BY_ID
+from sc_web_companion.stream_metadata import _is_recreg_stream
+from sc_web_companion.updater import (
+    GITHUB_REPOSITORY,
+    is_newer_version,
+    select_update_asset,
+)
 from sc_web_companion.verse_time import (
     astro_atlas_location_count,
     is_co_rotating_orbital_location,
@@ -40,9 +56,65 @@ if not expected_version or sc_web_companion.__version__ != expected_version:
         f"attendu {expected_version!r}."
     )
 
+# GitHub updater: validate the fixed public repository, semantic comparison and
+# deterministic Windows asset selection without making a network request.
+if GITHUB_REPOSITORY != "neehhhh/SC-RTLT":
+    raise RuntimeError("Le dépôt GitHub de mise à jour est incorrect.")
+if not is_newer_version("v1.3.6", "1.3.5"):
+    raise RuntimeError("La comparaison des versions de mise à jour est invalide.")
+if is_newer_version("v1.3.5", "1.3.5") or is_newer_version("v1.3.4", "1.3.5"):
+    raise RuntimeError("La mise à jour accepte une version identique ou plus ancienne.")
+selected_update_asset, selected_checksum_asset = select_update_asset(
+    [
+        {
+            "name": "SC-RTLT_Public_1.3.6_Windows.zip",
+            "browser_download_url": (
+                "https://github.com/neehhhh/SC-RTLT/releases/download/"
+                "v1.3.6/SC-RTLT_Public_1.3.6_Windows.zip"
+            ),
+            "size": 1024,
+        },
+        {
+            "name": "SHA256SUMS.txt",
+            "browser_download_url": (
+                "https://github.com/neehhhh/SC-RTLT/releases/download/"
+                "v1.3.6/SHA256SUMS.txt"
+            ),
+            "size": 128,
+        },
+    ]
+)
+if (
+    selected_update_asset.name != "SC-RTLT_Public_1.3.6_Windows.zip"
+    or selected_checksum_asset is None
+):
+    raise RuntimeError("La sélection du package Windows de mise à jour est invalide.")
+
+# Radio catalogue: preserve the six historical choices, then expose every
+# official REC·REG mount as a separate previous/next selection.
+recreg_station_ids = (
+    "recreg-rock",
+    "recreg-western",
+    "recreg-punk",
+    "recreg-lounge",
+    "recreg-metal",
+    "recreg-country",
+    "recreg-groovy",
+    "recreg-old-times",
+)
+if len(RADIO_STATIONS) != 14 or len(STATION_BY_ID) != len(RADIO_STATIONS):
+    raise RuntimeError("Le catalogue radio installé est incomplet ou contient un identifiant en double.")
+if tuple(station.station_id for station in RADIO_STATIONS[-8:]) != recreg_station_ids:
+    raise RuntimeError("Les huit stations REC·REG ne sont pas dans l'ordre officiel.")
+if len(RECREG_STREAM_URLS) != 8 or not all(_is_recreg_stream(url) for url in RECREG_STREAM_URLS):
+    raise RuntimeError("Les flux directs REC·REG ne sont pas reconnus par le lecteur de métadonnées.")
+for station_id, stream_url in zip(recreg_station_ids, RECREG_STREAM_URLS, strict=True):
+    station = STATION_BY_ID[station_id]
+    if station.stream_candidates != (stream_url,) or not station.name.startswith("REC·REG"):
+        raise RuntimeError(f"Configuration REC·REG invalide : {station_id}.")
+
 package_root = files("sc_web_companion")
 for resource_name in (
-    "assets/app_icon.svg",
     "assets/app_icon.png",
     "assets/app_icon.ico",
     "assets/versetime/bodies.csv",
@@ -50,17 +122,86 @@ for resource_name in (
     "assets/location_mappings.json",
     "assets/astro_atlas_index.json",
     "public_parser_recorder.py",
+    "updater.py",
 ):
     if not package_root.joinpath(resource_name).is_file():
         raise FileNotFoundError(f"Ressource absente : {resource_name}")
+if hashlib.sha256(package_root.joinpath("assets/app_icon.ico").read_bytes()).hexdigest() != (
+    "f607937742079d8769a5f7f909533b54a25cc39b1b1c4bc0a96856185f41d088"
+):
+    raise RuntimeError("L'icône fournie n'est pas celle intégrée au paquet.")
 
 if not GameUiLogParser().parse_line("<PlayerInventoryRequest>").active:
     raise RuntimeError("Le détecteur d'inventaire installé ne peut pas être initialisé.")
 if (
     not should_hide_widget_for_game_ui(True, "inventory")
     or should_hide_widget_for_game_ui(False, "inventory")
+    or should_hide_widget_for_game_ui(True, "asop")
+    or should_hide_widget_for_game_ui(True, "game_cursor")
 ):
-    raise RuntimeError("L'inventaire doit masquer complètement le widget et le restaurer à sa fermeture.")
+    raise RuntimeError("Seul l'inventaire doit masquer complètement le widget.")
+
+expected_hud_layout = {
+    "controls": (407, 36),
+    "location": (486, 35),
+    "pc_clock": (486, 52),
+    "verse_clock": (550, 34),
+    "radio_info": (911, 31),
+    "media": (1080, 32),
+    "track": (906, 51),
+    "guide_left": (413, 65),
+    "guide_right": (936, 63),
+}
+expected_hud_scales = {
+    "controls": 111,
+    "location": 113,
+    "pc_clock": 113,
+    "verse_clock": 113,
+    "radio_info": 109,
+    "media": 100,
+    "track": 108,
+    "guide_left": 100,
+    "guide_right": 100,
+}
+expected_hud_widths = {
+    "controls": 66,
+    "location": 52,
+    "pc_clock": 52,
+    "verse_clock": 84,
+    "radio_info": 147,
+    "media": 56,
+    "track": 152,
+    "guide_left": 204,
+    "guide_right": 204,
+}
+expected_hud_crops = {
+    "controls": {"left": 0, "right": 0},
+    "location": {"left": 0, "right": 0},
+    "pc_clock": {"left": 0, "right": 0},
+    "verse_clock": {"left": 0, "right": 0},
+    "radio_info": {"left": 0, "right": 0},
+    "media": {"left": 0, "right": 0},
+    "track": {"left": 52, "right": 0},
+    "guide_left": {"left": 0, "right": 0},
+    "guide_right": {"left": 0, "right": 0},
+}
+expected_hud_alignments = {
+    "location": "right",
+    "pc_clock": "right",
+    "verse_clock": "left",
+    "radio_info": "right",
+    "track": "right",
+}
+if default_hud_screen_layout(1536, 864) != expected_hud_layout:
+    raise RuntimeError("Les coordonnées du HUD usine 1536×864 sont incorrectes.")
+if default_hud_scales() != expected_hud_scales:
+    raise RuntimeError("Les échelles du HUD usine sont incorrectes.")
+if default_hud_visible_widths() != expected_hud_widths:
+    raise RuntimeError("Les largeurs du HUD usine sont incorrectes.")
+if default_hud_crops() != expected_hud_crops:
+    raise RuntimeError("Les recadrages du HUD usine sont incorrects.")
+if default_hud_text_alignments() != expected_hud_alignments:
+    raise RuntimeError("Les alignements du HUD usine sont incorrects.")
 
 if astro_atlas_location_count() != 516:
     raise RuntimeError("Le référentiel Astro Atlas installé est incomplet.")
@@ -244,9 +385,9 @@ if secondary_display(
 ) != "":
     raise RuntimeError("Le champ secondaire doit rester vide hors météo planétaire.")
 
-# Public Real Time Checker: choose the physical code over a newer Starmap destination and
+# SC-RTLT Public: choose the physical code over a newer Starmap destination and
 # write exactly one shareable JSON file only after a manual Wi-Fi confirmation.
-with tempfile.TemporaryDirectory(prefix="public-real-time-checker-") as temp_dir:
+with tempfile.TemporaryDirectory(prefix="sc-rtlt-public-") as temp_dir:
     parser_root = Path(temp_dir)
     recorder = PublicParserRecorder(root=parser_root)
     recorder.start_session(Path("C:/Games/StarCitizen/LIVE/Game.log"))
@@ -265,32 +406,32 @@ with tempfile.TemporaryDirectory(prefix="public-real-time-checker-") as temp_dir
     )
     capture = recorder.confirm_location("New Babbage Commons")
     if not capture.get("saved") or capture.get("location_code") != "3170699229":
-        raise RuntimeError("Public Real Time Checker ne sélectionne pas le code physique le plus probable.")
+        raise RuntimeError("SC-RTLT Public ne sélectionne pas le code physique le plus probable.")
     generated = sorted(path.name for path in parser_root.iterdir() if path.is_file())
-    if generated != ["Public_Real_Time_Checker_Registry.json"]:
-        raise RuntimeError(f"Public Real Time Checker génère des fichiers inutiles : {generated!r}")
+    if generated != ["SC-RTLT_Public_Registry.json"]:
+        raise RuntimeError(f"SC-RTLT Public génère des fichiers inutiles : {generated!r}")
     registry = json.loads((parser_root / generated[0]).read_text(encoding="utf-8"))
     records = registry.get("records") if isinstance(registry, dict) else None
     if not isinstance(records, list) or len(records) != 1:
-        raise RuntimeError("Le registre Public Real Time Checker est invalide.")
+        raise RuntimeError("Le registre SC-RTLT Public est invalide.")
     record = records[0]
     if record.get("user_location") != "New Babbage Commons" or record.get("location_code") != "3170699229":
         raise RuntimeError("Le texte utilisateur et le code Game.log ne sont pas associés.")
     forbidden_keys = {"game_log_path", "player_name", "account_id", "full_log"}
     if forbidden_keys.intersection(record):
-        raise RuntimeError("Le fichier Public Real Time Checker contient des données interdites.")
+        raise RuntimeError("Le fichier SC-RTLT Public contient des données interdites.")
 
 
 for identity_fragment in (
-    'app.setApplicationName("Public Real Time Checker")',
-    'app.setApplicationDisplayName("Public Real Time Checker")',
+    'app.setApplicationName("SC-RTLT Public")',
+    'app.setApplicationDisplayName("SC-RTLT Public")',
 ):
     if identity_fragment not in package_root.joinpath("__main__.py").read_text(encoding="utf-8"):
         raise RuntimeError(f"Identité visible absente : {identity_fragment}")
-if 'Path(roaming) / "PublicRealTimeChecker"' not in package_root.joinpath("config.py").read_text(encoding="utf-8"):
-    raise RuntimeError("Le stockage de configuration n'est pas isolé de SC RTLT.")
-if 'Public_Real_Time_Checker_Registry.json' not in package_root.joinpath("public_parser_recorder.py").read_text(encoding="utf-8"):
-    raise RuntimeError("Le registre Public Real Time Checker n'est pas correctement nommé.")
+if 'Path(roaming) / "SCRTLTPublic"' not in package_root.joinpath("config.py").read_text(encoding="utf-8"):
+    raise RuntimeError("Le stockage de configuration n'est pas isolé de SC-RTLT.")
+if 'SC-RTLT_Public_Registry.json' not in package_root.joinpath("public_parser_recorder.py").read_text(encoding="utf-8"):
+    raise RuntimeError("Le registre SC-RTLT Public n'est pas correctement nommé.")
 
 settings_source = package_root.joinpath("settings_page.py").read_text(encoding="utf-8")
 for required_fragment in (
@@ -302,8 +443,10 @@ for required_fragment in (
     'self.language.addItem("Français", "fr")',
     'self.language.addItem("English", "en")',
     'self.settings.setValue("app/language"',
-    't("Fichier Public Real Time Checker", "Public Real Time Checker file")',
+    't("Fichier SC-RTLT Public", "SC-RTLT Public file")',
     "public_parser_output_path()",
+    'self.update_button.setObjectName("updateButton")',
+    "self.update_installation_started.emit",
 ):
     if required_fragment not in settings_source:
         raise RuntimeError(f"Réglage obligatoire absent : {required_fragment}")
@@ -313,6 +456,15 @@ for forbidden_fragment in (
     "record_location_tests",
     "Enregistrer automatiquement les identifiants",
     "location_test_directory",
+    "widget/auto_enabled",
+    "widget/auto_delay_seconds",
+    "widget/minimal_delay_seconds",
+    "widget/remember_mode",
+    "widget/auto_hide_game_ui_enabled",
+    "Passer automatiquement en widget",
+    "Délai avant widget",
+    "Démarrer dans le dernier mode",
+    "Masquer le widget pendant les interfaces",
 ):
     if forbidden_fragment in settings_source:
         raise RuntimeError(f"Ancien enregistrement passif encore présent : {forbidden_fragment}")
@@ -323,6 +475,14 @@ if (
     or 'def retranslate_ui(self)' not in widget_source
 ):
     raise RuntimeError("Le mode automatique ou la traduction dynamique du widget est invalide.")
+for forbidden_fragment in (
+    "def set_minimal_mode",
+    "def set_lite_mode",
+    "minimal_panel",
+    "Widget Lite",
+):
+    if forbidden_fragment in widget_source:
+        raise RuntimeError(f"Ancien mode de widget encore présent : {forbidden_fragment}")
 language_source = package_root.joinpath("language.py")
 if not language_source.is_file():
     raise RuntimeError("Le module de langue FR/EN est absent du paquet.")
@@ -357,6 +517,8 @@ for required_fragment in (
     if required_fragment not in location_source:
         raise RuntimeError(f"Séparation physique/Starmap ou station orbitale absente : {required_fragment}")
 main_window_source = package_root.joinpath("main_window.py").read_text(encoding="utf-8")
+if '"app/start_widget_once"' not in main_window_source:
+    raise RuntimeError("Le redémarrage automatique du widget après mise à jour est absent.")
 for required_fragment in (
     "self.game_log_monitor.map_session_open",
     "self.game_log_monitor.begin_map_session()",
@@ -364,10 +526,31 @@ for required_fragment in (
 ):
     if required_fragment not in main_window_source:
         raise RuntimeError(f"Gestion F2/Échap absente : {required_fragment}")
+for forbidden_fragment in (
+    "auto_widget_timer",
+    "reset_auto_widget_timer",
+    "minimal_widget_requested",
+    "minimize_widget_hotkey",
+    'settings.value("window/widget_mode"',
+):
+    if forbidden_fragment in main_window_source:
+        raise RuntimeError(f"Ancienne bascule automatique encore présente : {forbidden_fragment}")
+widget_window_source = package_root.joinpath("widget_window.py").read_text(encoding="utf-8")
+for forbidden_fragment in (
+    "minimal_timer",
+    "force_minimal",
+    "show_minimal_widget",
+    "set_inventory_compact",
+):
+    if forbidden_fragment in widget_window_source:
+        raise RuntimeError(f"Ancienne logique de réduction encore présente : {forbidden_fragment}")
+hotkey_source = package_root.joinpath("radio_hotkeys.py").read_text(encoding="utf-8")
+if "ACTION_MINIMAL_WIDGET" in hotkey_source or "Key_F8" in hotkey_source:
+    raise RuntimeError("L'ancien raccourci de réduction F8 est encore actif.")
 
 # Construct the actual HUD once. This catches startup-only regressions such as
 # invalid translation calls before the installer activates the new release.
-app = QApplication.instance() or QApplication(["Public Real Time Checker runtime verification"])
+app = QApplication.instance() or QApplication(["SC-RTLT Public runtime verification"])
 with tempfile.TemporaryDirectory(prefix="sc-rtlt-widget-") as temp_dir:
     widget_settings = QSettings(str(Path(temp_dir) / "settings.ini"), QSettings.Format.IniFormat)
     widget_settings.setValue("game_log/auto_location_enabled", False)
@@ -381,5 +564,5 @@ app.processEvents()
 
 print(
     "Validation runtime OK — "
-    f"Public Real Time Checker {sc_web_companion.__version__}, PySide6 {PySide6.__version__}"
+    f"SC-RTLT Public {sc_web_companion.__version__}, PySide6 {PySide6.__version__}"
 )

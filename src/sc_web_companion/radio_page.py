@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .radio_engine import HCN_STREAM_URLS, RadioEngine
+from .radio_engine import HCN_STREAM_URLS, RECREG_STREAM_URLS, RadioEngine
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,7 +29,7 @@ class RadioStation:
         return f"{self.name} · {self.frequency}"
 
 
-HCN_STATIONS: tuple[RadioStation, ...] = (
+RADIO_STATIONS: tuple[RadioStation, ...] = (
     RadioStation(
         "radio1",
         "HCN-Radio 1",
@@ -75,8 +75,66 @@ HCN_STATIONS: tuple[RadioStation, ...] = (
             "https://us7.streamingpulse.com/4232/?pl=vlc&c=TPR",
         ),
     ),
+    RadioStation(
+        "recreg-rock",
+        "REC·REG — Rock",
+        "101.1 MHz",
+        "Classic and modern rock hits · Port Olisar, Crusader",
+        (RECREG_STREAM_URLS[0],),
+    ),
+    RadioStation(
+        "recreg-western",
+        "REC·REG — Western",
+        "102.3 MHz",
+        "Country and western vibes · Levski, Delamar",
+        (RECREG_STREAM_URLS[1],),
+    ),
+    RadioStation(
+        "recreg-punk",
+        "REC·REG — Punk",
+        "103.7 MHz",
+        "Punk rock and underground sounds · Ruin Station, Pyro",
+        (RECREG_STREAM_URLS[2],),
+    ),
+    RadioStation(
+        "recreg-lounge",
+        "REC·REG — Lounge",
+        "104.5 MHz",
+        "Smooth lounge and chill beats · New Babbage, microTech",
+        (RECREG_STREAM_URLS[3],),
+    ),
+    RadioStation(
+        "recreg-metal",
+        "REC·REG — Metal",
+        "105.9 MHz",
+        "Heavy metal and hard rock · Area18, ArcCorp",
+        (RECREG_STREAM_URLS[4],),
+    ),
+    RadioStation(
+        "recreg-country",
+        "REC·REG — Country",
+        "106.7 MHz",
+        "Country classics and modern hits · Lorville, Hurston",
+        (RECREG_STREAM_URLS[5],),
+    ),
+    RadioStation(
+        "recreg-groovy",
+        "REC·REG — Groovy",
+        "107.5 MHz",
+        "Funky grooves and smooth vibes · Terra Prime, Terra",
+        (RECREG_STREAM_URLS[6],),
+    ),
+    RadioStation(
+        "recreg-old-times",
+        "REC·REG — Old Times",
+        "108.3 MHz",
+        "Classic oldies and nostalgic hits · Orison, Crusader",
+        (RECREG_STREAM_URLS[7],),
+    ),
 )
-STATION_BY_ID = {station.station_id: station for station in HCN_STATIONS}
+# Compatibility alias for external callers that imported the historical name.
+HCN_STATIONS = RADIO_STATIONS
+STATION_BY_ID = {station.station_id: station for station in RADIO_STATIONS}
 DEFAULT_STATION_ID = "radio2"
 
 
@@ -90,7 +148,7 @@ def station_stream(settings: QSettings, station: RadioStation) -> str:
 
 
 def playable_stations(_settings: QSettings) -> list[RadioStation]:
-    return list(HCN_STATIONS)
+    return list(RADIO_STATIONS)
 
 
 def station_from_settings(settings: QSettings) -> RadioStation:
@@ -121,7 +179,7 @@ class RadioPage(QWidget):
         self.subtitle.setWordWrap(True)
 
         self.station_combo = QComboBox()
-        for station in HCN_STATIONS:
+        for station in RADIO_STATIONS:
             self.station_combo.addItem(station.display_name, station.station_id)
         self.station_combo.setCurrentIndex(self.station_combo.findData(self.station.station_id))
         self.station_combo.currentIndexChanged.connect(self._station_changed)

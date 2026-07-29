@@ -1,0 +1,49 @@
+name: Publish SC-RTLT Public 1.3.5
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - release/SC-RTLT_Public_1.3.5_Windows.zip
+      - release/SHA256SUMS.txt
+      - release/RELEASE_NOTES_1.3.5.md
+      - .github/workflows/publish-1.3.5.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Verify the Windows archive
+        working-directory: release
+        run: sha256sum --check SHA256SUMS.txt
+
+      - name: Create or update the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.3.5 >/dev/null 2>&1; then
+            gh release upload v1.3.5 \
+              release/SC-RTLT_Public_1.3.5_Windows.zip \
+              release/SHA256SUMS.txt \
+              --clobber
+            gh release edit v1.3.5 \
+              --title "SC-RTLT Public 1.3.5" \
+              --notes-file release/RELEASE_NOTES_1.3.5.md \
+              --latest
+          else
+            gh release create v1.3.5 \
+              release/SC-RTLT_Public_1.3.5_Windows.zip \
+              release/SHA256SUMS.txt \
+              --target "${GITHUB_SHA}" \
+              --title "SC-RTLT Public 1.3.5" \
+              --notes-file release/RELEASE_NOTES_1.3.5.md \
+              --latest
+          fi

@@ -1,58 +1,73 @@
 # SC-RTLT
 
-SC-RTLT est un outil communautaire non officiel pour Star Citizen. Cette
-version publique, **Public Real Time Checker 1.3.2**, réunit une application
-Windows et un widget en surimpression pour suivre le lieu du joueur, afficher
-l'heure locale du Verse et écouter des radios communautaires.
+SC-RTLT is an unofficial, community-made Star Citizen companion for Windows.
+It combines an always-on-top overlay, location and Verse-time information,
+community radio, and a curated web browser in one application.
 
-Le projet n'est ni développé, ni approuvé, ni soutenu par Cloud Imperium Games
-ou Roberts Space Industries.
+> SC-RTLT is an unofficial Star Citizen fan project and is not affiliated with
+> the Cloud Imperium group of companies. Third-party content remains the
+> property of its respective owners.
 
-## Télécharger la version Windows
+## Features
 
-[Télécharger Public Real Time Checker 1.3.2 pour Windows 11](release/Public_Real_Time_Checker_1.3.2_Windows.zip)
+- **14 independent fan-made radio streams:** five HCN Radio streams, The
+  People's Radio, and eight REC·REG streams.
+- **A single Star Citizen browser:** open a curated selection of community and
+  official Star Citizen-related sites in persistent tabs, and add your own
+  sites.
+- **Designed for use while playing:** the movable, always-on-top widget and
+  integrated controls remain available over the game. SC-RTLT does not inject
+  code into or modify Star Citizen.
+- **English and French:** switch the interface language from the application.
+- **Local location detection:** read `Game.log` locally and display the detected
+  location in the HUD.
+- **Verse time and HUD customization:** show local planetary time and customize
+  HUD layout and colors.
+- **In-app updates:** use the yellow update button at the top of Settings to
+  download a verified GitHub Release and restart the widget automatically.
 
-Vérification SHA-256 :
+Radio programming and linked websites are provided by independent third
+parties. SC-RTLT does not host, produce, edit, moderate, or control their
+content. See [LEGAL.md](LEGAL.md) and [PRIVACY.md](PRIVACY.md).
+
+## Download
+
+[Download SC-RTLT Public 1.3.5 for Windows](https://github.com/neehhhh/SC-RTLT/releases/latest/download/SC-RTLT_Public_1.3.5_Windows.zip)
+
+SHA-256:
 
 ```text
-5888bcfd6ef964b5afd5a431e5b2c935a5dd6fe09c30c32952b05708925a370b
+561eee4ddcedb88c3219a5e791cd843d0419756c0230d7ae1244cb8ec07f6c45
 ```
+
+Windows SmartScreen may display a warning because the application is not
+signed with a commercial code-signing certificate.
 
 ## Installation
 
-1. Téléchargez puis extrayez entièrement le ZIP.
-2. Ouvrez le dossier `Public_Real_Time_Checker_1.3.2_Windows`.
-3. Double-cliquez sur `Setup.bat`.
-4. Utilisez `Launcher.vbs` pour relancer l'application.
-5. En cas d'échec, consultez `Public_Real_Time_Checker-install.log` sur le
-   Bureau.
+1. Download and fully extract the ZIP archive.
+2. Open the `SC-RTLT_Public_1.3.5_Windows` folder.
+3. Double-click `Setup.bat`.
+4. Use `Launcher.vbs` to start the application again later.
+5. If installation fails, review `SC-RTLT-Public-install.log` on the Desktop.
 
-Windows peut afficher un avertissement SmartScreen, car l'application n'est
-pas signée avec un certificat commercial.
+## Local data
 
-## Fonctionnement
+SC-RTLT reads `Game.log` locally and in read-only mode. It never copies or
+uploads the complete log. The Wi-Fi button writes a location record only after
+the player confirms the action.
 
-- Lecture locale et en lecture seule du fichier `Game.log`.
-- Affichage de la localisation détectée dans un HUD déplaçable.
-- Heure locale des planètes et lunes à partir des données VerseTime.
-- Radios communautaires et affichage des métadonnées disponibles.
-- Éditeur de disposition du HUD et personnalisation des couleurs.
-- Bouton Wi-Fi pour associer manuellement un nom de lieu à un code technique.
-
-Le bouton Wi-Fi écrit uniquement après validation du joueur. Aucun `Game.log`
-complet n'est enregistré ou envoyé automatiquement.
-
-Le fichier partageable produit par l'outil se trouve ici :
+The optional, shareable registry file is stored at:
 
 ```text
-%LOCALAPPDATA%\PublicRealTimeCheckerData\registry\Public_Real_Time_Checker_Registry.json
+%LOCALAPPDATA%\SCRTLTPublicData\registry\SC-RTLT_Public_Registry.json
 ```
 
-Consultez [PRIVACY.md](PRIVACY.md) pour le détail.
+The application does not upload this file automatically.
 
-## Lancer depuis les sources
+## Run from source
 
-Prérequis : Windows 11 et Python 3.11 ou plus récent.
+Requirements: Windows 11 and Python 3.11 or later.
 
 ```powershell
 py -3.11 -m venv .venv
@@ -62,27 +77,26 @@ python -m pip install -e .
 python -m sc_web_companion
 ```
 
-Le nom `sc_web_companion` est conservé temporairement comme nom technique du
-paquet Python pour assurer la compatibilité avec les installations existantes.
+`sc_web_companion` remains the internal Python package name for compatibility
+with existing installations.
 
-## Structure
+## Repository layout
 
-- `src/sc_web_companion` : code source de l'application et du widget.
-- `installer` : scripts de l'installateur Windows.
-- `tools` : vérification du runtime installé.
-- `release` : archive Windows prête à télécharger.
+- `src/sc_web_companion`: application and widget source code.
+- `installer`: Windows release-layout and installer sources.
+- `release`: downloadable Windows archive, checksum, and release notes.
+- `LEGAL.md`: third-party content and unofficial-project notices.
+- `PRIVACY.md`: local data and network behavior.
 
-## Données tierces
+## Third-party data
 
-Les données de temps et de lieux VerseTime conservent leur notice dans
+VerseTime data retains its attribution notice in
 `src/sc_web_companion/assets/versetime/NOTICE.txt`.
 
-Star Citizen, Roberts Space Industries et leurs marques associées appartiennent
-à leurs détenteurs respectifs.
+The official Star Citizen website is
+[Roberts Space Industries](https://robertsspaceindustries.com/).
 
-## Licence
+## License
 
-Le code de ce dépôt est publié sous
-[GNU General Public License v3.0](LICENSE). La notice simplifiée incluse dans
-le ZIP 1.3.2 est une notice historique de garantie et de marques ; la licence
-applicable au code publié ici reste la GPL v3.
+The source code in this repository is licensed under the
+[GNU General Public License v3.0](LICENSE).

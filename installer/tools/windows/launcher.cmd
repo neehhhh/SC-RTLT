@@ -3,7 +3,7 @@ setlocal EnableExtensions
 set "APP_ROOT=%~dp0"
 set "CURRENT_FILE=%APP_ROOT%current.txt"
 if not exist "%CURRENT_FILE%" (
-    echo Public Real Time Checker n'a pas de version active.
+    echo SC-RTLT Public n'a pas de version active.
     echo Relance Setup.bat depuis le dossier extrait.
     pause
     exit /b 1

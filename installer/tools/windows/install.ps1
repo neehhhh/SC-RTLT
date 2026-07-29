@@ -1,11 +1,13 @@
-﻿param()
+﻿param(
+    [switch]$AutomaticUpdate
+)
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 $SourceRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\.."))
-$LogFile = Join-Path $env:TEMP "Public_Real_Time_Checker-install.log"
-$DesktopLog = Join-Path ([Environment]::GetFolderPath("Desktop")) "Public_Real_Time_Checker-install.log"
+$LogFile = Join-Path $env:TEMP "SC-RTLT_Public-install.log"
+$DesktopLog = Join-Path ([Environment]::GetFolderPath("Desktop")) "SC-RTLT_Public-install.log"
 $InstallStage = "Initialisation"
 $ReleaseDir = $null
 $CurrentTmp = $null
@@ -115,7 +117,7 @@ function Show-Failure {
 try {
     Clear-Host
     Write-Host "============================================================"
-    Write-Host "     PUBLIC REAL TIME CHECKER - INSTALLATEUR WINDOWS 11"
+    Write-Host "     SC-RTLT PUBLIC - INSTALLATEUR WINDOWS 11"
     Write-Host "============================================================"
     Write-Host ""
     Write-Host "L'installateur a bien demarre."
@@ -134,10 +136,10 @@ try {
         throw "VERSION.txt est vide."
     }
 
-    $AppRoot = Join-Path $env:LOCALAPPDATA "PublicRealTimeChecker"
+    $AppRoot = Join-Path $env:LOCALAPPDATA "SCRTLTPublic"
     $ReleasesDir = Join-Path $AppRoot "releases"
-    $DataDir = Join-Path $env:LOCALAPPDATA "PublicRealTimeCheckerData"
-    $ConfigDir = Join-Path $env:APPDATA "PublicRealTimeChecker"
+    $DataDir = Join-Path $env:LOCALAPPDATA "SCRTLTPublicData"
+    $ConfigDir = Join-Path $env:APPDATA "SCRTLTPublic"
     $ReleaseId = "{0}-{1}" -f $AppVersion, ([Guid]::NewGuid().ToString("N").Substring(0, 12))
     $ReleaseDir = Join-Path $ReleasesDir $ReleaseId
     $CurrentFile = Join-Path $AppRoot "current.txt"
@@ -155,7 +157,7 @@ try {
     foreach ($required in @(
         $AppWheel,
         $VerifyRuntime,
-        (Join-Path $SourceRoot "Public_Real_Time_Checker.ico"),
+        (Join-Path $SourceRoot "icons\SC-RTLT_Public.ico"),
         $StopScript,
         $ShortcutScript,
         $CleanScript,
@@ -271,7 +273,7 @@ try {
     }
 
     $InstallStage = "Installation du paquet"
-    Write-Host "[5/7] Installation de Public Real Time Checker..."
+    Write-Host "[5/7] Installation de SC-RTLT Public..."
 
     # Une copie de runtime peut contenir une ancienne distribution. On vérifie
     # d'abord les métadonnées installées afin de ne jamais appeler pip uninstall
@@ -314,7 +316,7 @@ try {
         & $InstalledPython -m pip install --disable-pip-version-check --prefer-binary --retries 3 --timeout 180 $AppWheel *>> $LogFile
     }
     if ($LASTEXITCODE -ne 0) {
-        throw "L'installation du paquet Public Real Time Checker a echoue."
+        throw "L'installation du paquet SC-RTLT Public a echoue."
     }
 
     $InstallStage = "Validation du runtime installe"
@@ -325,8 +327,8 @@ try {
     # en erreur lorsque ErrorActionPreference vaut Stop. Start-Process isole les
     # deux flux : seule la valeur ExitCode décide si la validation a échoué.
     $ValidationToken = [Guid]::NewGuid().ToString("N")
-    $ValidationStdout = Join-Path $env:TEMP ("Public_Real_Time_Checker-verify-{0}.out" -f $ValidationToken)
-    $ValidationStderr = Join-Path $env:TEMP ("Public_Real_Time_Checker-verify-{0}.err" -f $ValidationToken)
+    $ValidationStdout = Join-Path $env:TEMP ("SC-RTLT_Public-verify-{0}.out" -f $ValidationToken)
+    $ValidationStderr = Join-Path $env:TEMP ("SC-RTLT_Public-verify-{0}.err" -f $ValidationToken)
     try {
         $ValidationArguments = @(
             ('"{0}"' -f $VerifyRuntime),
@@ -358,9 +360,9 @@ try {
     }
     Set-Content -LiteralPath (Join-Path $ReleaseDir "version.txt") -Value $AppVersion -Encoding ASCII
 
-    Copy-Item -LiteralPath (Join-Path $SourceRoot "tools\windows\launcher.cmd") -Destination (Join-Path $AppRoot "Public_Real_Time_Checker.cmd") -Force
-    Copy-Item -LiteralPath (Join-Path $SourceRoot "tools\windows\launcher.vbs") -Destination (Join-Path $AppRoot "Public_Real_Time_Checker.vbs") -Force
-    Copy-Item -LiteralPath (Join-Path $SourceRoot "Public_Real_Time_Checker.ico") -Destination (Join-Path $AppRoot "Public_Real_Time_Checker.ico") -Force
+    Copy-Item -LiteralPath (Join-Path $SourceRoot "tools\windows\launcher.cmd") -Destination (Join-Path $AppRoot "SC-RTLT_Public.cmd") -Force
+    Copy-Item -LiteralPath (Join-Path $SourceRoot "tools\windows\launcher.vbs") -Destination (Join-Path $AppRoot "SC-RTLT_Public.vbs") -Force
+    Copy-Item -LiteralPath (Join-Path $SourceRoot "icons\SC-RTLT_Public.ico") -Destination (Join-Path $AppRoot "SC-RTLT_Public.ico") -Force
     Copy-Item -LiteralPath $StopScript -Destination (Join-Path $AppRoot "stop_running_app.ps1") -Force
     Copy-Item -LiteralPath (Join-Path $SourceRoot "tools\windows\diagnostic.cmd") -Destination (Join-Path $AppRoot "DIAGNOSTIC.cmd") -Force
     Copy-Item -LiteralPath (Join-Path $SourceRoot "tools\windows\reset_data.cmd") -Destination (Join-Path $AppRoot "REINITIALISER_DONNEES.cmd") -Force
@@ -388,13 +390,15 @@ try {
     Write-Log "Installation terminee avec succes"
     Write-Host ""
     Write-Host "============================================================"
-    Write-Host "INSTALLATION PUBLIC REAL TIME CHECKER TERMINEE AVEC SUCCES"
+    Write-Host "INSTALLATION SC-RTLT PUBLIC TERMINEE AVEC SUCCES"
     Write-Host "============================================================"
-    Write-Host "Le raccourci Public Real Time Checker a ete cree sur le Bureau."
+    Write-Host "Le raccourci SC-RTLT Public a ete cree sur le Bureau."
     Write-Host ("Journal : {0}" -f $LogFile)
     Write-Host ""
-    [void](Read-Host "Appuie sur Entree pour lancer l'application")
-    Start-Process -FilePath (Join-Path $env:SystemRoot "System32\wscript.exe") -ArgumentList ('"{0}"' -f (Join-Path $AppRoot "Public_Real_Time_Checker.vbs"))
+    if (-not $AutomaticUpdate) {
+        [void](Read-Host "Appuie sur Entree pour lancer l'application")
+    }
+    Start-Process -FilePath (Join-Path $env:SystemRoot "System32\wscript.exe") -ArgumentList ('"{0}"' -f (Join-Path $AppRoot "SC-RTLT_Public.vbs"))
     exit 0
 }
 catch {
