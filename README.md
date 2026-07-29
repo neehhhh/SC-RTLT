@@ -5,26 +5,15 @@ It combines an always-on-top overlay, location and Verse-time information,
 community radio, and a curated web browser in one application.
 
 > SC-RTLT is an unofficial Star Citizen fan project and is not affiliated with
-> the Cloud Imperium group of companies. Third-party content remains the
-> property of its respective owners.
+> the Cloud Imperium group of companies and all the radios streamed in this app. Third-party content remains the
+> property of its respective owners and creations.
 
 ## Features
 
-- **14 independent fan-made radio streams:** five HCN Radio streams, The
-  People's Radio, and eight REC·REG streams.
-- **A single Star Citizen browser:** open a curated selection of community and
-  official Star Citizen-related sites in persistent tabs, and add your own
-  sites.
-- **Designed for use while playing:** the movable, always-on-top widget and
-  integrated controls remain available over the game. SC-RTLT does not inject
-  code into or modify Star Citizen.
-- **English and French:** switch the interface language from the application.
-- **Local location detection:** read `Game.log` locally and display the detected
-  location in the HUD.
-- **Verse time and HUD customization:** show local planetary time and customize
-  HUD layout and colors.
-- **In-app updates:** use the yellow update button at the top of Settings to
-  download a verified GitHub Release and restart the widget automatically.
+- **14 independent fan-made radio streams:** 
+- **Single Star Citizen browser:** 
+- **Verse time and HUD customization:**
+- **English and French:**
 
 Radio programming and linked websites are provided by independent third
 parties. SC-RTLT does not host, produce, edit, moderate, or control their
