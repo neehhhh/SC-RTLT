@@ -1,0 +1,56 @@
+name: Publish Windows release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "installer/VERSION.txt"
+      - "release/SC-RTLT_Public_*_Windows.zip"
+      - "release/SHA256SUMS.txt"
+      - "release/RELEASE_NOTES_v*.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate and publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n ' < installer/VERSION.txt)"
+          tag="v${version}"
+          archive="release/SC-RTLT_Public_${version}_Windows.zip"
+          notes="release/RELEASE_NOTES_v${version}.md"
+
+          test -n "${version}"
+          test -f "${archive}"
+          test -f "${notes}"
+          test -f release/SHA256SUMS.txt
+          (cd release && sha256sum -c SHA256SUMS.txt)
+
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            gh release edit "${tag}" \
+              --title "SC-RTLT Public ${version}" \
+              --notes-file "${notes}"
+            gh release upload "${tag}" \
+              "${archive}" \
+              release/SHA256SUMS.txt \
+              --clobber
+          else
+            gh release create "${tag}" \
+              "${archive}" \
+              release/SHA256SUMS.txt \
+              --target "${GITHUB_SHA}" \
+              --title "SC-RTLT Public ${version}" \
+              --notes-file "${notes}"
+          fi

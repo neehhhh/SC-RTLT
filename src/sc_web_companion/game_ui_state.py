@@ -34,6 +34,10 @@ _LOADING_OPEN_RE = re.compile(
     re.IGNORECASE,
 )
 _LOADING_CLOSE_RE = re.compile(rb"Loading screen for .+ closed after", re.IGNORECASE)
+_PLAYER_SPAWNED_RE = re.compile(
+    rb"\[CSessionManager::OnClientSpawned\]\s+Spawned!",
+    re.IGNORECASE,
+)
 
 _CHANNELS = ("LIVE", "PTU", "EPTU", "TECH-PREVIEW")
 _MAX_READ_BYTES = 256 * 1024
@@ -65,9 +69,8 @@ class WindowsGameUiProbeState:
 
 
 def should_hide_widget_for_game_ui(active: bool, reason: str = "") -> bool:
-    """All detected interactive game UIs, including inventory, fully hide the widget."""
-    del reason
-    return bool(active)
+    """Only an active inventory is allowed to hide the normal widget."""
+    return bool(active) and str(reason or "").strip().casefold() == "inventory"
 
 
 class GameUiLogParser:
@@ -79,6 +82,8 @@ class GameUiLogParser:
             return None
         if _INVENTORY_CLOSE_RE.search(payload):
             return GameUiLogEvent("inventory", False)
+        if _PLAYER_SPAWNED_RE.search(payload):
+            return GameUiLogEvent("player_spawned", True)
         if _INVENTORY_OPEN_RE.search(payload):
             return GameUiLogEvent("inventory", True)
         if _ASOP_OPEN_RE.search(payload):
@@ -295,10 +300,6 @@ class GameUiStateMonitor(QObject):
         self._last_location_refresh_at = -999.0
 
     @property
-    def general_ui_enabled(self) -> bool:
-        return self.settings.value("widget/auto_hide_game_ui_enabled", True, type=bool)
-
-    @property
     def inventory_enabled(self) -> bool:
         return self.settings.value("widget/hide_in_inventory_enabled", True, type=bool)
 
@@ -310,7 +311,7 @@ class GameUiStateMonitor(QObject):
     def enabled(self) -> bool:
         # Escape/F2 location restoration must keep working even when the user has
         # disabled the generic UI-hiding feature.
-        return self.general_ui_enabled or self.inventory_enabled or self.location_hotkeys_enabled
+        return self.inventory_enabled or self.location_hotkeys_enabled
 
     @property
     def ui_active(self) -> bool:
@@ -462,12 +463,6 @@ class GameUiStateMonitor(QObject):
 
         if self._inventory_active and self.inventory_enabled:
             self._emit(True, "inventory")
-        elif self.general_ui_enabled and self._loading_active:
-            self._emit(True, "loading")
-        elif self.general_ui_enabled and self._transient_kind:
-            self._emit(True, self._transient_kind)
-        elif self.general_ui_enabled and self._cursor_ui_active:
-            self._emit(True, "game_cursor")
         else:
             self._emit(False, "")
 
@@ -477,7 +472,16 @@ class GameUiStateMonitor(QObject):
             return
         now = self._clock()
         self._last_log_activity_at = now
-        if event.kind == "loading":
+        if event.kind == "player_spawned":
+            # During a respawn Star Citizen rebuilds the player's attachments
+            # and emits several RequestInventoryData lines immediately before
+            # OnClientSpawned. Those requests are not an opened inventory and
+            # never receive a matching close event.
+            self._inventory_active = False
+            self._inventory_open_confirmed_by_log = False
+            self._inventory_key_pending_until = 0.0
+            self._loading_active = False
+        elif event.kind == "loading":
             self._loading_active = event.active
             if event.active:
                 # Star Citizen requests inventory data during player spawning.

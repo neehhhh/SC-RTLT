@@ -15,9 +15,13 @@ from PySide6.QtCore import QObject, QTimer, Signal
 
 from .metadata_text import clean_metadata_text, decode_metadata_bytes
 
-_METADATA_PATTERN = re.compile(r"StreamTitle='((?:[^']|'')*)';", re.IGNORECASE)
+# The closing ICY delimiter is ``';``. A bare apostrophe inside a song title
+# (for example "I Can't Drive 55") is valid and must not end the capture.
+_METADATA_PATTERN = re.compile(r"StreamTitle='(.*?)';", re.IGNORECASE | re.DOTALL)
 _HCN_HOST = "hcnradio.ddns.me"
 _HCN_STREAM_PATTERN = re.compile(r"/stream/(\d+)/?", re.IGNORECASE)
+_RECREG_HOST = "radio.recreg.com"
+_RECREG_STREAM_PATTERN = re.compile(r"^/listen/[^/]+/radio\.mp3/?$", re.IGNORECASE)
 _TPR_METADATA_PAGE = "https://thepeoplesradio.space/peoples_embed/audio-only/"
 _TPR_DURATION_SUFFIX = re.compile(r"\s*\[(?:\d{1,2}:)?\d{1,2}:\d{2}\]\s*$")
 
@@ -62,6 +66,17 @@ def _is_tpr_stream(stream_url: str) -> bool:
     return host == "us7.streamingpulse.com" and path == "/4232"
 
 
+def _is_recreg_stream(stream_url: str) -> bool:
+    """Identify only REC·REG's published station MP3 mounts."""
+    try:
+        parsed = urllib.parse.urlsplit(stream_url)
+        host = (parsed.hostname or "").casefold()
+        path = parsed.path or "/"
+    except Exception:
+        return False
+    return host == _RECREG_HOST and bool(_RECREG_STREAM_PATTERN.fullmatch(path))
+
+
 def _extract_tpr_now_playing(page_html: str) -> str:
     """Extract the official site's current track without touching its Unicode."""
     parser = _VisibleTextParser()
@@ -101,7 +116,7 @@ def _fetch_tpr_title(timeout: float) -> tuple[bool, str]:
         headers={
             "Accept": "text/html,application/xhtml+xml",
             "Accept-Language": "en-US,en;q=0.8",
-            "User-Agent": "SC-RTLT/1.3.0",
+            "User-Agent": "SC-RTLT/1.3.6",
             "Cache-Control": "no-cache",
         },
     )
@@ -211,7 +226,7 @@ def _fetch_json_title(endpoint: str, timeout: float) -> tuple[bool, str]:
         endpoint,
         headers={
             "Accept": "application/json,text/plain,*/*",
-            "User-Agent": "SC-RTLT/1.3.0",
+            "User-Agent": "SC-RTLT/1.3.6",
             "Cache-Control": "no-cache",
         },
     )
@@ -246,7 +261,7 @@ def _icy_metadata(stream_url: str, timeout: float) -> tuple[bool, str]:
         headers={
             "Icy-MetaData": "1",
             "Accept": "audio/mpeg,audio/aac,*/*",
-            "User-Agent": "SC-RTLT/1.3.0",
+            "User-Agent": "SC-RTLT/1.3.6",
             "Connection": "close",
         },
     )
@@ -270,7 +285,7 @@ def _icy_metadata(stream_url: str, timeout: float) -> tuple[bool, str]:
                     continue
                 raw = decode_metadata_bytes(_read_exact(response, metadata_length), response.headers)
                 match = _METADATA_PATTERN.search(raw)
-                title = _clean(match.group(1) if match else raw)
+                title = _clean(match.group(1).replace("''", "'") if match else raw)
                 if _valid_title(title):
                     return True, title
             return True, ""
@@ -340,6 +355,11 @@ def probe_stream_metadata(stream_url: str, timeout: float = 2.5) -> tuple[bool, 
         # Unicode on its official site, so use that source exclusively. If the
         # site is temporarily unavailable, show no title rather than mojibake.
         return _fetch_tpr_title(max(6.0, timeout))
+    if _is_recreg_stream(url):
+        # REC·REG serves several stations from one Icecast host. Generic
+        # status endpoints may return another mount's title, while each direct
+        # MP3 mount exposes the correct UTF-8 StreamTitle through ICY.
+        return _icy_metadata(url, timeout)
     hcn = _hcn_metadata_url(url)
     if hcn:
         return _probe_hcn_in_parallel(url, hcn, timeout)

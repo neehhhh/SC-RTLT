@@ -23,7 +23,12 @@ from PySide6.QtWidgets import QApplication
 import sc_web_companion
 from sc_web_companion.display_policy import secondary_display
 from sc_web_companion.game_log_location import GameLogLocationParser
-from sc_web_companion.game_ui_state import GameUiLogParser, should_hide_widget_for_game_ui
+from sc_web_companion.game_ui_state import (
+    GameUiLogParser,
+    GameUiStateMonitor,
+    WindowsGameUiProbeState,
+    should_hide_widget_for_game_ui,
+)
 from sc_web_companion.hud_layout import (
     default_hud_crops,
     default_hud_scales,
@@ -60,17 +65,17 @@ if not expected_version or sc_web_companion.__version__ != expected_version:
 # deterministic Windows asset selection without making a network request.
 if GITHUB_REPOSITORY != "neehhhh/SC-RTLT":
     raise RuntimeError("Le dépôt GitHub de mise à jour est incorrect.")
-if not is_newer_version("v1.3.6", "1.3.5"):
+if not is_newer_version("v1.3.7", "1.3.6"):
     raise RuntimeError("La comparaison des versions de mise à jour est invalide.")
-if is_newer_version("v1.3.5", "1.3.5") or is_newer_version("v1.3.4", "1.3.5"):
+if is_newer_version("v1.3.6", "1.3.6") or is_newer_version("v1.3.5", "1.3.6"):
     raise RuntimeError("La mise à jour accepte une version identique ou plus ancienne.")
 selected_update_asset, selected_checksum_asset = select_update_asset(
     [
         {
-            "name": "SC-RTLT_Public_1.3.6_Windows.zip",
+            "name": "SC-RTLT_Public_1.3.7_Windows.zip",
             "browser_download_url": (
                 "https://github.com/neehhhh/SC-RTLT/releases/download/"
-                "v1.3.6/SC-RTLT_Public_1.3.6_Windows.zip"
+                "v1.3.7/SC-RTLT_Public_1.3.7_Windows.zip"
             ),
             "size": 1024,
         },
@@ -78,16 +83,13 @@ selected_update_asset, selected_checksum_asset = select_update_asset(
             "name": "SHA256SUMS.txt",
             "browser_download_url": (
                 "https://github.com/neehhhh/SC-RTLT/releases/download/"
-                "v1.3.6/SHA256SUMS.txt"
+                "v1.3.7/SHA256SUMS.txt"
             ),
             "size": 128,
         },
     ]
 )
-if (
-    selected_update_asset.name != "SC-RTLT_Public_1.3.6_Windows.zip"
-    or selected_checksum_asset is None
-):
+if selected_update_asset.name != "SC-RTLT_Public_1.3.7_Windows.zip" or selected_checksum_asset is None:
     raise RuntimeError("La sélection du package Windows de mise à jour est invalide.")
 
 # Radio catalogue: preserve the six historical choices, then expose every
@@ -133,6 +135,11 @@ if hashlib.sha256(package_root.joinpath("assets/app_icon.ico").read_bytes()).hex
 
 if not GameUiLogParser().parse_line("<PlayerInventoryRequest>").active:
     raise RuntimeError("Le détecteur d'inventaire installé ne peut pas être initialisé.")
+spawn_event = GameUiLogParser().parse_line(
+    "[CSessionManager::OnClientSpawned] Spawned!"
+)
+if spawn_event is None or spawn_event.kind != "player_spawned":
+    raise RuntimeError("Le détecteur de réapparition ne peut pas être initialisé.")
 if (
     not should_hide_widget_for_game_ui(True, "inventory")
     or should_hide_widget_for_game_ui(False, "inventory")
@@ -554,6 +561,40 @@ app = QApplication.instance() or QApplication(["SC-RTLT Public runtime verificat
 with tempfile.TemporaryDirectory(prefix="sc-rtlt-widget-") as temp_dir:
     widget_settings = QSettings(str(Path(temp_dir) / "settings.ini"), QSettings.Format.IniFormat)
     widget_settings.setValue("game_log/auto_location_enabled", False)
+    widget_settings.setValue("widget/hide_in_inventory_enabled", True)
+
+    # Regression from the submitted Game.log: three automatic inventory
+    # requests are emitted eight milliseconds before OnClientSpawned. The
+    # final spawn marker must clear them without a fake inventory-close line.
+    probe_state = WindowsGameUiProbeState(
+        game_foreground=True,
+        cursor_showing=False,
+        process_name="StarCitizen.exe",
+    )
+    ui_monitor = GameUiStateMonitor(widget_settings, probe=lambda: probe_state)
+    respawn_inventory_line = (
+        "<Add Inventory Management Move> Type[QueryInventory] "
+        "Caller[CSCLocalPlayerPersonalThoughtComponent::RequestInventoryData]"
+    )
+    for _ in range(3):
+        ui_monitor.process_log_line(respawn_inventory_line)
+    ui_monitor.process_log_line("[CSessionManager::OnClientSpawned] Spawned!")
+    ui_monitor.poll()
+    if ui_monitor.ui_active or ui_monitor.active_reason:
+        raise RuntimeError("Le widget reste masqué après la réapparition du joueur.")
+
+    # A genuine inventory opening and its matching close event must continue
+    # to hide and restore the widget normally.
+    ui_monitor.process_log_line("<PlayerInventoryRequest>")
+    ui_monitor.poll()
+    if not ui_monitor.ui_active or ui_monitor.active_reason != "inventory":
+        raise RuntimeError("Une véritable ouverture d'inventaire ne masque plus le widget.")
+    ui_monitor.process_log_line("<Close Inventory Grid>")
+    ui_monitor.poll()
+    if ui_monitor.ui_active or ui_monitor.active_reason:
+        raise RuntimeError("La fermeture de l'inventaire ne restaure pas le widget.")
+    ui_monitor.stop()
+
     from sc_web_companion.widget_window import WidgetWindow
 
     widget = WidgetWindow(widget_settings)
