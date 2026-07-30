@@ -3,8 +3,8 @@
 <img width="1891" height="143" alt="image (1)" src="https://github.com/user-attachments/assets/615f5f84-a169-4a3a-9deb-ea3f7662a440" />
 
 SC-RTLT is an unofficial, community-made Star Citizen companion for Windows.
-It combines an always-on-top overlay, location and Verse-time information,
-community radio, and a curated web browser in one application.
+It is an overlay with location and Verse-time information,
+community radios and a web browser.
 
 > SC-RTLT is an unofficial Star Citizen fan project and is not affiliated with
 > the Cloud Imperium group of companies or the radios streamed in this app.
@@ -14,18 +14,17 @@ community radio, and a curated web browser in one application.
 
 <img width="1920" height="1080" alt="SC-RTLT-HUD" src="https://github.com/user-attachments/assets/7dd1f21c-735f-47d9-9a48-da6c40455de6" />
 
-- **14 independent fan-made radio streams**
-- **Single Star Citizen browser**
-- **Verse time and HUD customization**
-- **English and French**
+- 14 independent fan-made radio streams
+- Single Star Citizen browser
+- Verse time and HUD customization
+- English and French
+
+<img width="1917" height="1078" alt="Settings_screenshot" src="https://github.com/user-attachments/assets/2062934b-67b1-4613-b735-ebe4db9e92d6" />
+
 
 Radio programming and linked websites are provided by independent third
 parties. SC-RTLT does not host, produce, edit, moderate, or control their
 content. See [LEGAL.md](LEGAL.md) and [PRIVACY.md](PRIVACY.md).
-
-## Latest update
-
-Bug fix : Widget is no longer masking upon death
 
 ## Download
 
