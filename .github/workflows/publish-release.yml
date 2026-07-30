@@ -9,6 +9,7 @@ on:
       - "release/SC-RTLT_Public_*_Windows.zip"
       - "release/SHA256SUMS.txt"
       - "release/RELEASE_NOTES_v*.md"
+      - ".github/workflows/publish-release.yml"
   workflow_dispatch:
 
 permissions:
@@ -41,7 +42,8 @@ jobs:
           if gh release view "${tag}" >/dev/null 2>&1; then
             gh release edit "${tag}" \
               --title "SC-RTLT Public ${version}" \
-              --notes-file "${notes}"
+              --notes-file "${notes}" \
+              --latest
             gh release upload "${tag}" \
               "${archive}" \
               release/SHA256SUMS.txt \
@@ -52,5 +54,6 @@ jobs:
               release/SHA256SUMS.txt \
               --target "${GITHUB_SHA}" \
               --title "SC-RTLT Public ${version}" \
-              --notes-file "${notes}"
+              --notes-file "${notes}" \
+              --latest
           fi
