@@ -14,7 +14,8 @@ community radios and a web browser.
 
 <img width="1920" height="1080" alt="SC-RTLT-HUD" src="https://github.com/user-attachments/assets/7dd1f21c-735f-47d9-9a48-da6c40455de6" />
 
-<img width="1917" height="1078" alt="Settings_screenshot" src="https://github.com/user-attachments/assets/2062934b-67b1-4613-b735-ebe4db9e92d6" />
+<img width="1917" height="1078" alt="Settingshud" src="https://github.com/user-attachments/assets/24ae9805-1aa7-4ebd-b92a-22e6389df541" />
+
 
 - 14 independent fan-made radio streams
 - Single Star Citizen browser
