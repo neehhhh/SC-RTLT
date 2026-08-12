@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.env
+*.log
+*.jsonl
+location-tests/
+Public_Real_Time_Checker_Registry.json

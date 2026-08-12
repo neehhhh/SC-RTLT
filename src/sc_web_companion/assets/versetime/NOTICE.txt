@@ -1,0 +1,6 @@
+VerseTime data and time-calculation method
+Source: https://github.com/dydrmr/VerseTime
+Live tool: https://dydrmr.github.io/VerseTime/
+Data credits in the original project: Murphy Exploration Group.
+VerseTime is distributed under the GNU General Public License v3.0.
+The bundled CSV files are kept in their original tabular form for local calculations.
