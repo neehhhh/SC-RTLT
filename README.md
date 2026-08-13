@@ -41,8 +41,9 @@ To be RGPD compliant, you need to accept access to CloudFlare in the settings.
 
 This is still a bit experimental, depending on situation, server confidtions the rights notification doesn't show up and doesn't notify the widget. 
 A cache saves group player id so it might go faster with people with play more.
+>
 
-<img width="765" height="456" alt="image" src="https://github.com/user-attachments/assets/291b84fa-409f-4e64-a7b6-40e7e2ae9e77" />
+<img width="852" height="565" alt="groupraidui" src="https://github.com/user-attachments/assets/9bf8e21e-60d7-4491-bf83-9add86270b4d" />
 
 
 ## Download
