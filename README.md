@@ -26,11 +26,18 @@ Radio programming and linked websites are provided by independent third
 parties. SC-RTLT does not host, produce, edit, moderate, or control their
 content. See [LEGAL.md](LEGAL.md) and [PRIVACY.md](PRIVACY.md).
 
-> ## Alpha Group UI :
+> ## Raid and Group UI :
 >
 > The widget gets the name with the invite notification and go fetch some basics information from players RSI profil page. Name, Org logo and name, Title. If the group goes up to +5 it switch to the Raid UI to compact the widget and stay at the same size.
 >
 > Disabled by default, you can enable it in the settings.
+> SC-RTLT now use a CloudFlare so if everybody in the group use the widget, they get more stables information. Only the player ID, in-game location and vehicules channels is shared and encrypted before reaching cloudflare.
+
+> Features :
+Group UI up to 4 players
+Raid UI up to 12 players
+
+To be RGPD compliant, you need to accept access to CloudFlare in the settings.
 
 This is still a bit experimental, depending on situation, server confidtions the rights notification doesn't show up and doesn't notify the widget. 
 A cache saves group player id so it might go faster with people with play more.
@@ -40,12 +47,12 @@ A cache saves group player id so it might go faster with people with play more.
 
 ## Download
 
-[Download SC-RTLT Public 1.4.37 for Windows](https://github.com/neehhhh/SC-RTLT/releases/download/1.4.37/SC-RTLT_Public_1.4.37_Windows.zip)
+[Download SC-RTLT Public 2.1.7 for Windows](https://github.com/neehhhh/SC-RTLT/releases/download/2.1.7/SC-RTLT_Public_2.1.7_Windows.zip)
 
 SHA-256:
 
 ```text
-e6e11c32f7adefbbf453f3b93d4e3ebc77280652afc0770a1f00ee51ba7f2d50
+d71f6ba67d980f20df9b8472dd726435621b3a0c25004fefa47d2d6502e9caaa
 ```
 
 Windows SmartScreen may display a warning because the application is not
