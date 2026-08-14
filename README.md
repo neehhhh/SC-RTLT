@@ -72,8 +72,10 @@ signed with a commercial code-signing certificate.
 ## Local data
 
 SC-RTLT reads `Game.log` locally and in read-only mode. It never copies or
-uploads the complete log. The Wi-Fi button writes a location record only after
-the player confirms the action.
+uploads the complete log. Any data used for Cloudeflare is encrypted before leaving the computer
+
+The Wi-Fi button writes a location record only after
+the player confirms the action. This helps build a locations database for the widget outside TimeVerse. 
 
 The optional, shareable registry file is stored at:
 
