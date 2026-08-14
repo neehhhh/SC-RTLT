@@ -64,7 +64,7 @@ signed with a commercial code-signing certificate.
 ## Installation
 
 1. Download and fully extract the ZIP archive.
-2. Open the `SC-RTLT_Public_1.4.37_Windows` folder.
+2. Open the `SC-RTLT_Public_2.1.19_Windows` folder.
 3. Double-click `Setup.bat`.
 4. Use `Launcher.vbs` to start the application again later.
 5. If installation fails, review `SC-RTLT-Public-install.log` on the Desktop.
