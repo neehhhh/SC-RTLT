@@ -50,12 +50,12 @@ A cache saves group player id so it might go faster with people with play more.
 
 ## Download
 
-[Download SC-RTLT Public 2.1.7 for Windows](https://github.com/neehhhh/SC-RTLT/releases/download/2.1.7/SC-RTLT_Public_2.1.7_Windows.zip)
+[Download SC-RTLT Public 2.1.19 for Windows](https://github.com/neehhhh/SC-RTLT/releases/download/2.1.19/SC-RTLT_Public_2.1.19_Windows.zip)
 
 SHA-256:
 
 ```text
-d71f6ba67d980f20df9b8472dd726435621b3a0c25004fefa47d2d6502e9caaa
+1b611cb1f70e62b8be8d540790ed30547b805b118ce24dae6bae95d3aa4965e7
 ```
 
 Windows SmartScreen may display a warning because the application is not
