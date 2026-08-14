@@ -50,12 +50,12 @@ A cache saves group player id so it might go faster with people with play more.
 
 ## Download
 
-[Download SC-RTLT Public 2.1.19 for Windows](https://github.com/neehhhh/SC-RTLT/releases/download/2.1.19/SC-RTLT_Public_2.1.19_Windows.zip)
+[Download SC-RTLT Public 2.1.20 for Windows](https://github.com/neehhhh/SC-RTLT/releases/download/2.1.20/SC-RTLT_Public_2.1.20_Windows.zip)
 
 SHA-256:
 
 ```text
-1b611cb1f70e62b8be8d540790ed30547b805b118ce24dae6bae95d3aa4965e7
+87294fc289c664bf73b2395d3ceee8f6d7c22968b01cc69ddcc1a9b4b54313cc
 ```
 
 Windows SmartScreen may display a warning because the application is not
@@ -64,7 +64,7 @@ signed with a commercial code-signing certificate.
 ## Installation
 
 1. Download and fully extract the ZIP archive.
-2. Open the `SC-RTLT_Public_2.1.19_Windows` folder.
+2. Open the `SC-RTLT_Public_2.1.20_Windows` folder.
 3. Double-click `Setup.bat`.
 4. Use `Launcher.vbs` to start the application again later.
 5. If installation fails, review `SC-RTLT-Public-install.log` on the Desktop.
