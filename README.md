@@ -12,7 +12,8 @@ community radios and a web browser.
 
 ## Features
 
-<img width="1920" height="1080" alt="SC-RTLT-HUD" src="https://github.com/user-attachments/assets/7dd1f21c-735f-47d9-9a48-da6c40455de6" />
+<img width="1920" height="1080" alt="mainui" src="https://github.com/user-attachments/assets/7c8e8f59-0c17-401d-a26a-4d27f37431e7" />
+
 
 <img width="1917" height="1078" alt="Settingshud" src="https://github.com/user-attachments/assets/24ae9805-1aa7-4ebd-b92a-22e6389df541" />
 
