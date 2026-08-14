@@ -4,7 +4,7 @@
 
 SC-RTLT is an unofficial, community-made Star Citizen companion for Windows.
 It is an overlay with location and Verse-time information,
-community radios and a web browser.
+community radios and a raid/group UI.
 
 > SC-RTLT is an unofficial Star Citizen fan project and is not affiliated with
 > the Cloud Imperium group of companies or the radios streamed in this app.
